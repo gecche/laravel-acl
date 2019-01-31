@@ -1,8 +1,8 @@
 <?php
 
-namespace Cupparis\Acl\Models;
+namespace Gecche\Acl\Models;
 
-use Cupparis\Ardent\Ardent;
+use Gecche\Ardent\Ardent;
 use Illuminate\Support\Facades\Config;
 
 /**

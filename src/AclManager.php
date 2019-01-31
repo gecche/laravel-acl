@@ -1,6 +1,6 @@
 <?php
 
-namespace Cupparis\Acl;
+namespace Gecche\Acl;
 
 use Illuminate\Support\Manager;
 

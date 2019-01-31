@@ -1,11 +1,11 @@
 <?php
 
-namespace Cupparis\Acl;
+namespace Gecche\Acl;
 
 /**
  * Default Eloquent permission provider.
  */
-class EloquentPermissionProvider implements \Cupparis\Acl\Contracts\PermissionContract
+class EloquentPermissionProvider implements \Gecche\Acl\Contracts\PermissionContract
 {
 
     public $models;

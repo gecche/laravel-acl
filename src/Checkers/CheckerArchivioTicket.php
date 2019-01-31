@@ -1,6 +1,6 @@
 <?php
 
-namespace Cupparis\Acl\Checkers;
+namespace Gecche\Acl\Checkers;
 
 use App\Models\User;
 use Illuminate\Support\Facades\DB;

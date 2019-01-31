@@ -1,0 +1,27 @@
+{
+    "name": "gecche/laravel-acl",
+    "description": "A flexible ACL package based on Eloquent Models",
+    "keywords": ["laravel", "acl", "permissions", "roles"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Giacomo Terreni",
+            "email": "giacomo.terreni@gmail.com"
+        }
+    ],
+    "require": {
+        "laravel/framework": "5.5.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Gecche\\Acl\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+
+            ]
+        }
+    }
+}

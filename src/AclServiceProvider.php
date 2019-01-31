@@ -1,6 +1,6 @@
 <?php
 
-namespace Cupparis\Acl;
+namespace Gecche\Acl;
 
 use Illuminate\Support\ServiceProvider;
 
@@ -44,7 +44,7 @@ class AclServiceProvider extends ServiceProvider {
 //	private function getDriverClass()
 //	{
 //		$provider = Config::get('acl::driver');
-//		return 'Cupparis\Acl\PermissionDrivers\\' . ucfirst($provider) . 'Driver';
+//		return 'Gecche\Acl\PermissionDrivers\\' . ucfirst($provider) . 'Driver';
 //	}
 
 }

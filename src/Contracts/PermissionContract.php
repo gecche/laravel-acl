@@ -1,6 +1,6 @@
 <?php
 
-namespace Cupparis\Acl\Contracts;
+namespace Gecche\Acl\Contracts;
 
 /**
  * Abstract class for getting permissions.

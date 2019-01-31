@@ -1,6 +1,6 @@
 <?php
 
-namespace Cupparis\Acl\Facades;
+namespace Gecche\Acl\Facades;
 
 use Illuminate\Support\Facades\Facade;
 

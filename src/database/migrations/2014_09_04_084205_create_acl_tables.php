@@ -1,6 +1,6 @@
 <?php
 
-use Cupparis\Database\Schema\Blueprint;
+use Gecche\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
 class CreateAclTables extends Migration {

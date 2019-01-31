@@ -1,6 +1,6 @@
 <?php
 
-namespace Cupparis\Acl\Checkers;
+namespace Gecche\Acl\Checkers;
 
 /**
  * Main ACL class for checking does user have some permissions.

@@ -1,9 +1,9 @@
 <?php
 
-namespace Cupparis\Acl;
+namespace Gecche\Acl;
 
-use Cupparis\Acl\Contracts\AclContract;
-use Cupparis\Acl\Contracts\PermissionContract;
+use Gecche\Acl\Contracts\AclContract;
+use Gecche\Acl\Contracts\PermissionContract;
 use Illuminate\Contracts\Auth\Guard;
 use Closure;
 use Illuminate\Support\Facades\Session;
