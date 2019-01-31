@@ -39,9 +39,8 @@ class AclSeeder extends Seeder {
 
         $acl_model_permission::create(array(
                 'id' => 'ACCESS_ROLE',
-                'name' => 'Access users of those roles',
+                'description' => 'Access users of those roles',
                 'allowed' => false,
-                'route' => array(),
                 'resource_id_required' => true,
         ));
 
@@ -51,50 +50,38 @@ class AclSeeder extends Seeder {
 
             $acl_model_permission::create(array(
                         'id' => 'CREATE_' . $modelUpper,
-                        'name' => 'Create ' . $modelCamel,
+                        'description' => 'Create ' . $modelCamel,
                         'allowed' => false,
-                        'route' => array('GET:/' . $model . '/create', 'POST:/' . $model),
                         'resource_id_required' => false,
             ));
             $acl_model_permission::create(array(
                         'id' => 'EDIT_' . $modelUpper,
-                        'name' => 'Edit ' . $modelCamel,
+                        'description' => 'Edit ' . $modelCamel,
                         'allowed' => false,
-                        'route' => array(
-                            'GET:/' . $model . '/(\d+)/edit',
-                            'PUT:/' . $model . '/(\d+)',
-                        ),
                         'resource_id_required' => true,
             ));
             $acl_model_permission::create(array(
                         'id' => 'DELETE_' . $modelUpper,
-                        'name' => 'Delete ' . $modelCamel,
+                        'description' => 'Delete ' . $modelCamel,
                         'allowed' => false,
-                        'route' => array(
-                            'DELETE:/' . $model . '/(\d+)',
-                            'POST:/' . $model . '/deleteall'
-                        ),
                         'resource_id_required' => false,
             ));
             $acl_model_permission::create(array(
                         'id' => 'VIEW_' . $modelUpper,
-                        'name' => 'View ' . $modelCamel,
+                        'description' => 'View ' . $modelCamel,
                         'allowed' => false,
-                        'route' => array('GET:/' . $model . '/(\d+)'),
                         'resource_id_required' => true,
             ));
             $acl_model_permission::create(array(
                         'id' => 'LIST_' . $modelUpper,
-                        'name' => 'View ' . $modelCamel,
+                        'description' => 'View ' . $modelCamel,
                         'allowed' => false,
-                        'route' => array('GET:/' . $model,'GET:/tab/' . $model),
                         'resource_id_required' => false,
             ));
             $acl_model_permission::create(array(
                         'id' => 'ARCHIVIO_' . $modelUpper,
-                        'name' => 'Archive View ' . $modelCamel,
+                        'description' => 'Archive View ' . $modelCamel,
                         'allowed' => false,
-                        'route' => array('GET:/archivio/' . $model),
                         'resource_id_required' => false,
             ));
         }
@@ -106,12 +93,12 @@ class AclSeeder extends Seeder {
 
         $acl_model_role::create(array(
             'id' => 'ADMIN',
-            'name' => 'Admin',
+            'description' => 'Admin',
         ));
 
         $acl_model_role::create(array(
             'id' => 'OPERATORE',
-            'name' => 'Operatore',
+            'description' => 'Operatore',
         ));
 
 
@@ -135,8 +122,7 @@ class AclSeeder extends Seeder {
             'role_id' => 'ADMIN',
             'permission_id' => ACCESS_ROLE,
             'allowed' => null,
-            'allowed_ids' => 'OPERATORE',
-            'excluded_ids' => null,
+            'ids' => 'OPERATORE',
         ));
 
 
@@ -148,8 +134,7 @@ class AclSeeder extends Seeder {
                         'role_id' => 'ADMIN',
                         'permission_id' => $permission . '_' . strtoupper($m),
                         'allowed' => true,
-                        'allowed_ids' => null,
-                        'excluded_ids' => null,
+                        'ids' => null,
                     ));
             }
         }
@@ -162,8 +147,7 @@ class AclSeeder extends Seeder {
                         'role_id' => 'OPERATORE',
                         'permission_id' => $permission . '_' . strtoupper($m),
                         'allowed' => true,
-                        'allowed_ids' => null,
-                        'excluded_ids' => null,
+                        'ids' => null,
                     ));
             }
         }
@@ -182,8 +166,7 @@ class AclSeeder extends Seeder {
                     'user_id' => 0,
                     'permission_id' => $permission . '_' . strtoupper($m),
                     'allowed' => true,
-                    'allowed_ids' => null,
-                    'excluded_ids' => null,
+                    'ids' => null,
                 ));
             }
         }

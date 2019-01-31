@@ -271,12 +271,12 @@ class AclGuard implements AclContract
 
         // check if permission exist in list of all permissions
         if ($userPermission == null) {
-            $this->throwError('Permission "' . $permissionId . '" does not exist.');
+            throw new \InvalidArgumentException('Permission "' . $permissionId . '" does not exist.');
         }
 
         // is resource ID provided for permissions that expect resource ID
         if ($userPermission['resource_id_required'] && empty($resourceId)) {
-            $this->throwError('You must specify resource id for permission "' . $permissionId . '".');
+            throw new \InvalidArgumentException('You must specify resource id for permission "' . $permissionId . '".');
         }
 
         $checkMethodName = 'checkPermission' . studly_case(strtolower($permissionId));
@@ -316,7 +316,7 @@ class AclGuard implements AclContract
 
         // check if permission exist in list of all permissions
         if ($userPermission == null) {
-            $this->throwError('Permission "' . $permissionId . '" does not exist.');
+            throw new \InvalidArgumentException('Permission "' . $permissionId . '" does not exist.');
         }
 
         $buildMethodName = 'buildQuery' . studly_case(strtolower($permissionId));
@@ -338,54 +338,6 @@ class AclGuard implements AclContract
         }
     }
 
-    /**
-     * Clean up then throw and exception.
-     *
-     * @param string $message
-     */
-    private function throwError($message)
-    {
-        throw new \InvalidArgumentException($message);
-    }
-
-
-
-    /*
-     *
-     * PROVIDER METHODS REPARAMETERIZED
-     *
-     */
-
-
-    /**
-     * Update user permissions (user permissions needs to exist).
-     *
-     * @param integer $userId
-     * @param array $permissions
-     */
-    public function updateUserPermissions($userId, array $permissions)
-    {
-        foreach ($permissions as $permission) {
-            $this->updateUserPermission(
-                $userId, $permission['id'], @$permission['allowed'], @$permission['ids']
-            );
-        }
-    }
-
-    /**
-     * Update role permissions (role permissions needs to exist).
-     *
-     * @param integer $roleId
-     * @param array $permissions
-     */
-    public function updateRolePermissions($roleId, array $permissions)
-    {
-        foreach ($permissions as $permission) {
-            $this->updateRolePermission(
-                $roleId, $permission['id'], @$permission['allowed'], @$permission['ids']
-            );
-        }
-    }
 
 
     /**
@@ -405,53 +357,6 @@ class AclGuard implements AclContract
         return $this->provider->getUserPermission($userId, $permissionId);
     }
 
-    /**
-     * Set user permission. If permission exist update, otherwise create.
-     *
-     * @param integer $userId
-     * @param string $permissionId
-     * @param boolean $allowed
-     * @param array $allowedIds
-     * @param array $excludedIds
-     */
-    public function setUserPermission(
-        $userId,
-        $permissionId,
-        $allowed = null,
-        array $allowedIds = null
-    )
-    {
-        $permission = $this->getUserPermission($userId, $permissionId);
-        if (empty($permission)) {
-            return $this->provider->assignUserPermission($userId, $permissionId, $allowed, $allowedIds);
-        } else {
-            return $this->provider->updateUserPermission($userId, $permissionId, $allowed, $allowedIds);
-        }
-    }
-
-    /**
-     * Set role permission. If permission exist update, otherwise create.
-     *
-     * @param integer $roleId
-     * @param string $permissionId
-     * @param boolean $allowed
-     * @param array $allowedIds
-     * @param array $excludedIds
-     */
-    public function setRolePermission(
-        $roleId,
-        $permissionId,
-        $allowed = null,
-        array $allowedIds = null
-    )
-    {
-        $permission = $this->getRolePermission($roleId, $permissionId);
-        if (empty($permission)) {
-            return $this->provider->assignRolePermission($roleId, $permissionId, $allowed, $allowedIds);
-        } else {
-            return $this->provider->updateRolePermission($roleId, $permissionId, $allowed, $allowedIds);
-        }
-    }
 
 
     /**

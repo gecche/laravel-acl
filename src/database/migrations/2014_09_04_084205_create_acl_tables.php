@@ -16,9 +16,8 @@ class CreateAclTables extends Migration {
 		if (!Schema::hasTable('acl_permissions')) {
 			Schema::create('acl_permissions', function(Blueprint $table) {
 				$table->string('id')->primary();
-				$table->text('route');
 				$table->boolean('resource_id_required');
-				$table->string('name');
+                $table->string('description');
 			});
 		}
 
@@ -45,7 +44,7 @@ class CreateAclTables extends Migration {
 		if (!Schema::hasTable('acl_roles')) {
 			Schema::create('acl_roles', function(Blueprint $table) {
 				$table->string('id')->primary();
-				$table->string('name');
+				$table->string('description');
 			});
 		}
 
