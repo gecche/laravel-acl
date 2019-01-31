@@ -2,14 +2,13 @@
 
 namespace Gecche\Acl\Models;
 
-use Gecche\Ardent\Ardent;
-use Illuminate\Support\Facades\Config;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * Eloquent model for acl_groups table.
  * This is used by Eloquent permissions provider.
  */
-class Role extends Ardent
+class Role extends Model
 {
     protected $table = 'acl_roles';
 
@@ -17,25 +16,8 @@ class Role extends Ardent
 
     public $timestamps = false;
 
-    public static $relationsData = array(
-        //'address' => array(self::HAS_ONE, 'Address'),
-        //'orders'  => array(self::HAS_MANY, 'Order'),
-        'permissions' => array(self::BELONGS_TO_MANY, 'App\Models\Permission', 'table' => 'acl_roles_permissions'),
-        //'fotos' => array(self::BELONGS_TO_MANY, 'App\Models\Foto', 'table' => 'users_fotos','pivotKeys' => array("ordine")),
-        //'roles' => array(self::BELONGS_TO_MANY, 'App\Models\Role', 'table' => 'acl_users_roles'),
-    );
-
-    public static function getForSelectList($columns = null, $separator = null, $params = array())
-    {
-        if (array_get($params,'filters',false) !== []) {
-            $params['filters'] = array(array(
-                    'field' => 'id',
-                    'operator' => '!=',
-                    'value' => 'LOGIN',
-            ));
-        }
-        return parent::getForSelectList($columns, $separator, $params);
+    public function permissions() {
+        return $this->belongsToMany(Permission::class, 'acl_roles_permissions', 'user_id', 'role_id');
     }
-
 
 }

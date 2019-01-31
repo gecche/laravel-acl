@@ -1,7 +1,6 @@
-<?php namespace Gecche\Seeders;
+<?php namespace Gecche\Acl\Seeders;
 
 use App\Models\User;
-use Cupparis\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Validator;
@@ -12,30 +11,18 @@ class EloquentSeeder
 
     protected $configValues = [];
 
-    protected $configFilePath = 'config/permissions.php';
-
     protected $aclModels = [];
-
-    protected $files = null;
-
-    protected $stub = 'stubs/config/permissions.stub';
 
     /**
      * Permissions constructor.
-     * @param string $configFilePath
-     * @param array $aclModels
-     * @param array $$this->configValues
+     * @param array $configValues
      */
-    public function __construct($configValues = [], $files = null)
+    public function __construct($configValues = [])
     {
         $this->configValues = $configValues;
 
         $this->aclModels = Config::get('acl.models');
 
-        if (is_null($files))
-            $this->files = new Filesystem();
-        else
-            $this->files = $files;
     }
 
     protected function getStub()
@@ -46,38 +33,6 @@ class EloquentSeeder
 
     public function savePermissions()
     {
-
-        $this->aclModels = Config::get('acl.models');
-
-        $stub = $this->files->get($this->getStub());
-
-
-        foreach ($this->configValues as $key => $value) {
-
-            $stub = str_replace(
-                '{{$' . $key . '}}', var_export($value, true), $stub
-            );
-
-        }
-
-        $this->seed();
-
-
-        $this->files->put($this->getConfigFile(), $stub);
-
-
-    }
-
-    protected function getConfigFile()
-    {
-
-        return base_path($this->configFilePath);
-    }
-
-
-    protected function seed()
-    {
-
 
         DB::statement('SET FOREIGN_KEY_CHECKS = 0');
         foreach ($this->aclModels as $aclModelKey => $acl_model) {
@@ -92,16 +47,6 @@ class EloquentSeeder
 //
         $this->seedRolesPermissions();
         $this->seedGuestPermissions();
-
-
-//
-//        foreach ($this->$this->configValues as $key => $value) {
-//            $methodName = 'seed'.studly_case($key);
-//
-//            if (method_exists($this,$methodName)) {
-//                $this->$methodName($value);
-//            }
-//        }
 
     }
 
@@ -124,14 +69,6 @@ class EloquentSeeder
 
             foreach ($models_permissions_prefixes as $prefixKey => $prefixValue) {
 
-                $routes = array_get($prefixValue, 'routes', []);
-
-                $routes = array_map(function ($val) use ($model) {
-                    return str_replace('<MODEL>', $model, $val);
-                }, $routes);
-
-                $routes = json_encode($routes);
-
                 $acl_model_permissionObject =  $acl_model_permission::find($prefixKey . '_' . $modelUpper);
                 if ($acl_model_permissionObject && $acl_model_permissionObject->getKey()) {
                     continue;
@@ -139,8 +76,7 @@ class EloquentSeeder
 
                 $acl_model_permission::create(array(
                     'id' => $prefixKey . '_' . $modelUpper,
-                    'name' => $prefixKey . ' ' . $modelCamel,
-                    'route' => $routes,
+                    'description' => $prefixKey . ' ' . $modelCamel,
                     'resource_id_required' => array_get($prefixValue, 'resource_id_required', false),
                 ));
 
@@ -150,14 +86,9 @@ class EloquentSeeder
 
         foreach ($extra_permissions as $permissionKey => $permissionValue) {
 
-            $routes = array_get($permissionValue, 'routes', []);
-
-            $routes = json_encode($routes);
-
             $acl_model_permission::create(array(
                 'id' => $permissionKey,
-                'name' => $permissionKey,
-                'route' => $routes,
+                'description' => $permissionKey,
                 'resource_id_required' => array_get($permissionValue, 'resource_id_required', false),
             ));
 
@@ -181,7 +112,7 @@ class EloquentSeeder
 
             $acl_model_role::create(array(
                 'id' => $roleKey,
-                'name' => $roleValue,
+                'description' => $roleValue,
             ));
 
         }

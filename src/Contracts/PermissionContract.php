@@ -18,8 +18,7 @@ interface PermissionContract
      *  array(
      *      'id' => 'PERMISSION_ID',
      *      'allowed' => null|true|false,
-     *      'allowed_ids' => null|2|array(1,2,3),
-     *      'excluded_ids' => null|2|array(1,2,3)
+     *      'ids' => null|2|array(1,2,3),
      *  ),...
      * )
      *
@@ -72,7 +71,6 @@ interface PermissionContract
      *  array(
      *      'id' => 'PERMISSION_ID',
      *      'allowed' => true|false,
-     *      'route' => 'GET:/resource$'|array('GET:/resource$','POST:/resource$'),
      *      'resource_id_required' => true|false
      *  ),...
      * )

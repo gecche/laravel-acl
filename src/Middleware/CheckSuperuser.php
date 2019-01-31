@@ -1,4 +1,4 @@
-<?php namespace Cupparis\App\Http\Middleware;
+<?php namespace Gecche\Acl\Middleware;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;

@@ -14,12 +14,18 @@ use InvalidArgumentException;
  */
 class AclManager extends Manager
 {
+
+    protected $config;
+
     /**
      * AclManager constructor.
      */
     public function __construct($app)
     {
         $this->app = $app;
+        $config = config('acl',[]);
+
+        $this->config = $this->app['config']['acl'] ?: [];
     }
 
 
@@ -32,11 +38,10 @@ class AclManager extends Manager
     {
 
 
-        $models = $this->app['config']['acl.models'];
-        $provider = new EloquentPermissionProvider($models);
+        $provider = new EloquentPermissionProvider($config);
         $cache = $this->cache();
 
-        return new AclGuard($provider, $this->app['auth.driver'],$cache);
+        return new AclGuard($provider, $this->app['auth.driver'],$cache,$this->config);
     }
 
 
@@ -64,12 +69,14 @@ class AclManager extends Manager
 
         $cache = $this->cache();
 
-        return new AclGuard($custom, $this->app['auth'],$cache);
+        return new AclGuard($custom, $this->app['auth'],$cache,$this->config);
     }
 
     protected function cache() {
 
-        $cache = $this->app['config']['acl.cache_type'] ?: 'local';
+        $models = array_get($this->config,'models');
+
+        $cache = array_get($this->config,'cache_type','local');
 
         $method = 'create'.Str::studly($cache).'Cache';
 

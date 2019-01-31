@@ -8,12 +8,16 @@ namespace Gecche\Acl;
 class EloquentPermissionProvider implements \Gecche\Acl\Contracts\PermissionContract
 {
 
+    public $config;
     public $models;
+    protected $idsSeparator;
     public $allPermissions;
 
-    function __construct($models)
+    function __construct($config)
     {
-        $this->models = $models;
+        $this->config;
+        $this->models = array_get($config,'models',[]);
+        $this->idsSeparator = array_get($config,'ids_separator',',');
     }
 
 
@@ -22,7 +26,7 @@ class EloquentPermissionProvider implements \Gecche\Acl\Contracts\PermissionCont
      */
     public function getUserPermissions($userId)
     {
-        $userPermissionModel = $this->models['UserPermission'];
+        $userPermissionModel = array_get($this->models,'UserPermission');
         $userPermissions = $userPermissionModel::where('user_id', '=', $userId)->get()->toArray();
 
         foreach ($userPermissions as &$permission) {
@@ -37,7 +41,7 @@ class EloquentPermissionProvider implements \Gecche\Acl\Contracts\PermissionCont
      */
     public function getRolePermissions($roleId)
     {
-        $rolePermissionModel = $this->models['RolePermission'];
+        $rolePermissionModel = array_get($this->models,'RolePermission');
         $rolePermissions = $rolePermissionModel::where('role_id', '=', $roleId)->get()->toArray();
 
         foreach ($rolePermissions as &$permission) {
@@ -52,8 +56,8 @@ class EloquentPermissionProvider implements \Gecche\Acl\Contracts\PermissionCont
      */
     public function getUserPermissionsBasedOnRoles($userId)
     {
-        $userRoleModel = $this->models['UserRole'];
-        $rolePermissionModel = $this->models['RolePermission'];
+        $userRoleModel = array_get($this->models,'UserRole');
+        $rolePermissionModel = array_get($this->models,'RolePermission');
         $userRole = new $userRoleModel;
         $rolePermission = new $rolePermissionModel;
         $userRolePermissions = $userRoleModel::where('user_id', $userId)
@@ -95,7 +99,7 @@ class EloquentPermissionProvider implements \Gecche\Acl\Contracts\PermissionCont
             return $this->allPermissions;
         }
 
-        $permissionModel = $this->models['Permission'];
+        $permissionModel = array_get($this->models,'Permission');
         $permissions = $permissionModel::all()->toArray();
 
         foreach ($permissions as &$permission) {
@@ -112,7 +116,7 @@ class EloquentPermissionProvider implements \Gecche\Acl\Contracts\PermissionCont
      */
     public function getUserPermission($userId, $permissionId)
     {
-        $userPermissionModel = $this->models['UserPermission'];
+        $userPermissionModel = array_get($this->models,'UserPermission');
         if ($userId === null) {
             // if user is not specified then return all user permissions with specific permission_id
             $permissions = $userPermissionModel::where('permission_id', '=', $permissionId)->get()->toArray();
@@ -140,7 +144,7 @@ class EloquentPermissionProvider implements \Gecche\Acl\Contracts\PermissionCont
      */
     public function getRolePermission($roleId, $permissionId)
     {
-        $rolePermissionModel = $this->models['RolePermission'];
+        $rolePermissionModel = array_get($this->models,'RolePermission');
         if ($roleId === null) {
             // if role is not specified then return all role permissions with specific permission_id
             $permissions = $rolePermissionModel::where('permission_id', '=', $permissionId)->get()->toArray();
@@ -167,7 +171,7 @@ class EloquentPermissionProvider implements \Gecche\Acl\Contracts\PermissionCont
      */
     public function getUserRoles($userId)
     {
-        $userRoleModel = $this->models['UserRole'];
+        $userRoleModel = array_get($this->models,'UserRole');
         return $userRoleModel::where('user_id', $userId)->lists('role_id');
     }
 

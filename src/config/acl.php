@@ -64,6 +64,7 @@ return [
     'cache_type' => 'local', //session,cache,local
     'cache_minutes' => 60, //living minutes, valid only with cache_type = cache
 
+    'ids_separator' => ',',
 
 ];
 

@@ -22,14 +22,14 @@ class BuilderListUser extends Builder
 
         $query = $query->leftJoin('acl_users_roles','users.id', '=', 'acl_users_roles.user_id');
         $query = $query->where(function ($sq) use  ($allowed_roles_ids,$allowed_ids,$ids,$userId) {
-            $sq = $sq->where('users.id', $userId);
+            $sq->where('users.id', $userId);
             if (!empty($allowed_roles_ids)) {
-                $sq = $sq->orWhere(function ($q) use ($allowed_roles_ids) {
+                $sq->orWhere(function ($q) use ($allowed_roles_ids) {
                     $q->whereIn('acl_users_roles.role_id', $allowed_roles_ids);
                 });
             }
             if (!empty($allowed_ids)) {
-                $sq = $sq->orWhere('users.id', 'IN', $ids['ids']);
+                $sq->orWhere('users.id', 'IN', $ids['ids']);
             }
         });
         return $query;

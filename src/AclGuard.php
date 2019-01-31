@@ -17,6 +17,8 @@ class AclGuard implements AclContract
 
     protected $provider;
     protected $auth;
+    protected $cache;
+    protected $config;
 
     protected $superUsers;
     protected $guestUser;
@@ -25,20 +27,16 @@ class AclGuard implements AclContract
     protected $checkersNamespaces;
     protected $buildersNamespaces;
 
-    protected $cache = null;
-    protected $cached = array();
-
     //ORM Extension
 
 
-    public function __construct(PermissionContract $provider, Guard $auth, CachePermissionsContract $cache)
+    public function __construct(PermissionContract $provider, Guard $auth, CachePermissionsContract $cache, array $config)
     {
 
         $this->provider = $provider;
         $this->auth = $auth;
         $this->cache = $cache;
-
-        $config = config('acl',[]);
+        $this->config = $config;
 
         $this->superUsers = array_get($config,'superusers',[]);
         $this->guestUser = array_get($config,'guestuser',0);

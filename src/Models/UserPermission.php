@@ -2,14 +2,13 @@
 
 namespace Gecche\Acl\Models;
 
-use Gecche\Ardent\Ardent;
 use Illuminate\Database\Eloquent\Model;
 
 /**
  * Eloquent model for acl_users_permissions table.
  * This is used by Eloquent permissions provider.
  */
-class UserPermission extends Ardent
+class UserPermission extends Model
 {
     protected $table = 'acl_users_permissions';
 
