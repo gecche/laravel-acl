@@ -3,6 +3,7 @@
 namespace Gecche\Acl;
 
 use Gecche\Acl\Contracts\AclContract;
+use Gecche\Acl\Contracts\CachePermissionsContract;
 use Gecche\Acl\Contracts\PermissionContract;
 use Illuminate\Contracts\Auth\Guard;
 use Closure;
@@ -17,57 +18,64 @@ class AclGuard implements AclContract
     protected $provider;
     protected $auth;
 
-    protected $superusers;
-    protected $guestuser;
-    protected $loginrole;
+    protected $superUsers;
+    protected $guestUser;
+    protected $loginRole;
 
-    protected $checkers_namespaces;
-    protected $builders_namespaces;
+    protected $checkersNamespaces;
+    protected $buildersNamespaces;
 
     protected $cache = null;
+    protected $cached = array();
 
-    private $cached = array();
     //ORM Extension
 
 
-    public function __construct(PermissionContract $provider, Guard $auth, $superusers, $guestuser, $loginrole, $checkers_namespaces, $builders_namespaces, $cache = null)
+    public function __construct(PermissionContract $provider, Guard $auth, CachePermissionsContract $cache)
     {
+
         $this->provider = $provider;
         $this->auth = $auth;
-        $this->superusers = $superusers;
-        $this->guestuser = $guestuser;
-        $this->loginrole = $loginrole;
-
         $this->cache = $cache;
 
-        $this->checkers_namespaces = $checkers_namespaces;
-    $this->builders_namespaces = $builders_namespaces;
+        $config = config('acl',[]);
+
+        $this->superUsers = array_get($config,'superusers',[]);
+        $this->guestUser = array_get($config,'guestuser',0);
+        $this->loginRole = array_get($config,'guestuser','LOGIN');
+
+        $this->checkersNamespaces = array_get($config,'checkers_namespaces',[]);
+        $this->buildersNamespaces = array_get($config,'builders_namespaces',[]);
     }
 
-
-
-
-    /***/
-
-    public function getCurrentUserId() {
-        if ($this->auth->user()) {
-            return $this->auth->id();
-        } else {
-            return $this->guestuser;
-        }
+    /**
+     * @return PermissionContract
+     */
+    public function getProvider()
+    {
+        return $this->provider;
     }
+
+    /**
+     * @return Guard
+     */
+    public function getAuth()
+    {
+        return $this->auth;
+    }
+
 
     /**
      * Detect iF current user is superuser.
      *
      * @return boolean
      */
-    public function isSuperuser($userId = null)
+    public function isSuperUser($userId = null)
     {
         if ($userId === null)
             $userId = $this->getCurrentUserId();
 
-        return in_array($userId, $this->superusers);
+        return in_array($userId, $this->superUsers);
     }
 
     /**
@@ -75,12 +83,12 @@ class AclGuard implements AclContract
      *
      * @return boolean
      */
-    public function isGuestuser($userId = null)
+    public function isGuestUser($userId = null)
     {
         if ($userId === null)
             $userId = $this->getCurrentUserId();
 
-        return $userId === $this->guestuser;
+        return $userId === $this->guestUser;
     }
 
     /**
@@ -88,9 +96,9 @@ class AclGuard implements AclContract
      *
      * @return array
      */
-    public function getSuperusers()
+    public function getSuperUsers()
     {
-        return $this->superusers;
+        return $this->superUsers;
     }
 
     /**
@@ -98,9 +106,9 @@ class AclGuard implements AclContract
      *
      * @return int
      */
-    public function getGuestuser()
+    public function getGuestUser()
     {
-        return $this->guestuser;
+        return $this->guestUser;
     }
 
     /**
@@ -108,37 +116,11 @@ class AclGuard implements AclContract
      *
      * @return int
      */
-    public function getLoginrole()
+    public function getLoginRole()
     {
-        return $this->loginrole;
+        return $this->loginRole;
     }
 
-
-    protected function getCacheUserPermissions($userId) {
-        if ($userId != $this->getCurrentUserId()) {
-            return isset($this->cached[$userId]) ? $this->cached[$userId] : false;
-        }
-
-        switch ($this->cache) {
-            case 'session':
-                return Session::get('acl_permissions_'.$userId,false);
-            default:
-                return isset($this->cached[$userId]) ? $this->cached[$userId] : false;
-        }
-    }
-
-    protected function setCacheUserPermissions($userId,$permissions) {
-        if ($userId != $this->getCurrentUserId()) {
-            return $this->cached[$userId] = $permissions;
-        }
-
-        switch ($this->cache) {
-            case 'session':
-                return Session::put('acl_permissions_'.$userId,$permissions);
-            default:
-                return $this->cached[$userId] = $permissions;
-        }
-    }
     /**
      * Get user permissions (together with system permissions)
      *
@@ -152,7 +134,7 @@ class AclGuard implements AclContract
             $userId = $this->getCurrentUserId();
         }
 
-        $userPermissions = $this->getCacheUserPermissions($userId);
+        $userPermissions = $this->cache->getCacheUserPermissions($userId);
         if ($userPermissions === false) {
 
             // get user permissions
@@ -173,8 +155,8 @@ class AclGuard implements AclContract
             }
 
             //Aggiungo i permessi assegnati al ruolo login (tutti gli utenti autenticati)
-            if (!$this->isGuestuser($userId)) {
-                $loginRolePermissions = $this->provider->getRolePermissions($this->getLoginrole());
+            if (!$this->isGuestUser($userId)) {
+                $loginRolePermissions = $this->provider->getRolePermissions($this->getLoginRole());
                 foreach ($loginRolePermissions as $loginRolePermission) {
                     if (@$loginRolePermission['id'] === null) {
                         continue;
@@ -204,12 +186,13 @@ class AclGuard implements AclContract
             }
 
             // set finall permissions for particular user
-            $this->setCacheUserPermissions($userId,$permissions);
+            $this->cache->setCacheUserPermissions($userId, $permissions);
             $userPermissions = $permissions;
         }
 
         return $userPermissions;
     }
+
     /**
      * Get current user roles (linear structure)
      *
@@ -221,62 +204,9 @@ class AclGuard implements AclContract
             $userId = $this->getCurrentUserId();
         }
 
-       return $this->provider->getUserRoles($userId);
+        return $this->provider->getUserRoles($userId);
     }
 
-
-    /**
-     * Check if user has permission.
-     *
-     * @return boolean
-     */
-    public function check($permissionId,$resourceId = null,$userId = null)
-    {
-        if ($userId === null) {
-            $userId = $this->getCurrentUserId();
-        }
-
-
-        if ($this->isSuperuser()) {
-            return true;
-        }
-
-        $userPermissions = $this->getUserPermissions($userId);
-
-
-        $userPermission = @$userPermissions[$permissionId];
-
-        // check if permission exist in list of all permissions
-        if ($userPermission == null) {
-            $this->throwError('Permission "' . $permissionId . '" does not exist.');
-        }
-
-        // is resource ID provided for permissions that expect resource ID
-        if ($userPermission['resource_id_required'] && empty($resourceId)) {
-            $this->throwError('You must specify resource id for permission "' . $permissionId . '".');
-        }
-
-        $checkMethodName = 'checkPermission'.studly_case(strtolower($permissionId));
-        $allowed = $this->$checkMethodName($resourceId,$userPermission,$userId);
-
-
-        return $allowed;
-    }
-
-    /**
-     * Clean up then throw and exception.
-     *
-     * @param string $message
-     */
-    private function throwError($message)
-    {
-        throw new \InvalidArgumentException($message);
-    }
-
-
-    /*
-     * METODI PER I FILTRI
-     */
 
     /**
      * Get resource ids that user can (or not) access.
@@ -284,13 +214,13 @@ class AclGuard implements AclContract
      *
      * @return array
      */
-    public function getResourceIds($permissionId,$userId = null)
+    public function getResourceIds($permissionId, $userId = null)
     {
         if ($userId === null) {
             $userId = $this->getCurrentUserId();
         }
 
-        if ($this->isSuperuser($userId)) {
+        if ($this->isSuperUser($userId)) {
             return array(
                 'allowed' => true,
                 'ids' => array(),
@@ -312,11 +242,54 @@ class AclGuard implements AclContract
                 'ids' => array(),
             );
         } else {
-            $permission = array_merge($ids,$permission);
+            $permission = array_merge($ids, $permission);
         }
 
         return $permission;
     }
+
+    /**
+     * Check if user has permission.
+     *
+     * @return boolean
+     */
+    public function check($permissionId, $resourceId = null, $userId = null)
+    {
+        if ($userId === null) {
+            $userId = $this->getCurrentUserId();
+        }
+
+
+        if ($this->isSuperUser()) {
+            return true;
+        }
+
+        $userPermissions = $this->getUserPermissions($userId);
+
+
+        $userPermission = @$userPermissions[$permissionId];
+
+        // check if permission exist in list of all permissions
+        if ($userPermission == null) {
+            $this->throwError('Permission "' . $permissionId . '" does not exist.');
+        }
+
+        // is resource ID provided for permissions that expect resource ID
+        if ($userPermission['resource_id_required'] && empty($resourceId)) {
+            $this->throwError('You must specify resource id for permission "' . $permissionId . '".');
+        }
+
+        $checkMethodName = 'checkPermission' . studly_case(strtolower($permissionId));
+        $allowed = $this->$checkMethodName($resourceId, $userPermission, $userId);
+
+
+        return $allowed;
+    }
+
+    /*
+     * METODI PER I FILTRI
+     */
+
     /**
      * Append to the query additional where statements if needed.
      *
@@ -332,7 +305,7 @@ class AclGuard implements AclContract
         }
 
 
-        if ($this->isSuperuser()) {
+        if ($this->isSuperUser()) {
             return $query;
         }
 
@@ -346,14 +319,34 @@ class AclGuard implements AclContract
             $this->throwError('Permission "' . $permissionId . '" does not exist.');
         }
 
-        $buildMethodName = 'buildQuery'.studly_case(strtolower($permissionId));
-        $query = $this->$buildMethodName($query,$userPermission,$userId,$primaryKey,$params);
+        $buildMethodName = 'buildQuery' . studly_case(strtolower($permissionId));
+        $query = $this->$buildMethodName($query, $userPermission, $userId, $primaryKey, $params);
 
         return $query;
 
     }
 
 
+
+
+    public function getCurrentUserId()
+    {
+        if ($this->auth->user()) {
+            return $this->auth->id();
+        } else {
+            return $this->guestUser;
+        }
+    }
+
+    /**
+     * Clean up then throw and exception.
+     *
+     * @param string $message
+     */
+    private function throwError($message)
+    {
+        throw new \InvalidArgumentException($message);
+    }
 
 
 
@@ -403,7 +396,7 @@ class AclGuard implements AclContract
      *
      * @return array
      */
-    public function getUserPermission($permissionId,$userId = null)
+    public function getUserPermission($permissionId, $userId = null)
     {
         if ($userId === null) {
             $userId = $this->getCurrentUserId();
@@ -426,7 +419,8 @@ class AclGuard implements AclContract
         $permissionId,
         $allowed = null,
         array $allowedIds = null
-    ) {
+    )
+    {
         $permission = $this->getUserPermission($userId, $permissionId);
         if (empty($permission)) {
             return $this->provider->assignUserPermission($userId, $permissionId, $allowed, $allowedIds);
@@ -449,7 +443,8 @@ class AclGuard implements AclContract
         $permissionId,
         $allowed = null,
         array $allowedIds = null
-    ) {
+    )
+    {
         $permission = $this->getRolePermission($roleId, $permissionId);
         if (empty($permission)) {
             return $this->provider->assignRolePermission($roleId, $permissionId, $allowed, $allowedIds);
@@ -459,28 +454,27 @@ class AclGuard implements AclContract
     }
 
 
-
     /**
      * Dynamically call the default driver instance.
      *
-     * @param  string  $method
-     * @param  array   $parameters
+     * @param  string $method
+     * @param  array $parameters
      * @return mixed
      */
     public function __call($method, $parameters)
     {
-        if (starts_with($method,'checkPermission')) {
+        if (starts_with($method, 'checkPermission')) {
 
-            $permission = substr($method,15);
-            foreach ($this->checkers_namespaces as $checker_namespace) {
-                $checkerClassName = $checker_namespace . "\\Checker". $permission;
+            $permission = substr($method, 15);
+            foreach ($this->checkersNamespaces as $checker_namespace) {
+                $checkerClassName = $checker_namespace . "\\Checker" . $permission;
                 if (class_exists($checkerClassName)) {
                     $checker = new $checkerClassName($this);
                     return call_user_func_array(array($checker, 'check'), $parameters);
                 }
             }
 
-            foreach ($this->checkers_namespaces as $checker_namespace) {
+            foreach ($this->checkersNamespaces as $checker_namespace) {
                 $checkerClassName = $checker_namespace . "\\Checker";
                 if (class_exists($checkerClassName)) {
                     $checker = new $checkerClassName($this);
@@ -489,18 +483,18 @@ class AclGuard implements AclContract
             }
         }
 
-        if (starts_with($method,'buildQuery')) {
+        if (starts_with($method, 'buildQuery')) {
 
-            $permission = substr($method,10);
-            foreach ($this->builders_namespaces as $builder_namespace) {
-                $builderClassName = $builder_namespace . "\\Builder". $permission;
+            $permission = substr($method, 10);
+            foreach ($this->buildersNamespaces as $builder_namespace) {
+                $builderClassName = $builder_namespace . "\\Builder" . $permission;
                 if (class_exists($builderClassName)) {
                     $builder = new $builderClassName($this);
                     return call_user_func_array(array($builder, 'query'), $parameters);
                 }
             }
 
-            foreach ($this->builders_namespaces as $builder_namespace) {
+            foreach ($this->buildersNamespaces as $builder_namespace) {
                 $builderClassName = $builder_namespace . "\\Builder";
                 if (class_exists($builderClassName)) {
                     $builder = new $builderClassName($this);
@@ -511,8 +505,6 @@ class AclGuard implements AclContract
 
         return call_user_func_array(array($this->provider, $method), $parameters);
     }
-
-
 
 
 }

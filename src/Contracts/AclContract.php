@@ -2,6 +2,8 @@
 
 namespace Gecche\Acl\Contracts;
 
+use Illuminate\Contracts\Auth\Guard;
+
 /**
  * Contact for acl guard
  *
@@ -9,20 +11,29 @@ namespace Gecche\Acl\Contracts;
 interface AclContract
 {
 
+    /**
+     * @return PermissionContract
+     */
+    public function getProvider();
+
+    /**
+     * @return Guard
+     */
+    public function getAuth();
 
     /**
      * Detect iF current user is superuser.
      *
      * @return boolean
      */
-    public function isSuperuser($userId = null);
+    public function isSuperUser($userId = null);
 
     /**
      * Detect if current user is guestuser.
      *
      * @return boolean
      */
-    public function isGuestuser($userId = null);
+    public function isGuestUser($userId = null);
 
 
     /**
@@ -30,21 +41,21 @@ interface AclContract
      *
      * @return array
      */
-    public function getSuperusers();
+    public function getSuperUsers();
 
     /**
      * Return ID of guest user
      *
      * @return int
      */
-    public function getGuestuser();
+    public function getGuestUser();
 
     /**
      * Return ID of login role
      *
      * @return int
      */
-    public function getLoginrole();
+    public function getLoginRole();
 
     /**
      * Get user permissions (together with system permissions)
@@ -86,4 +97,6 @@ interface AclContract
      * @return \Illuminate\Database\Eloquent\Builder | \Illuminate\Database\Query\Builder
      */
     public function query($query, $permissionId, $primaryKey = 'id', $userId = null, $params = array());
+
+
 }
