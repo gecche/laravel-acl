@@ -23,7 +23,6 @@ class AclManager extends Manager
     public function __construct($app)
     {
         $this->app = $app;
-        $config = config('acl',[]);
 
         $this->config = $this->app['config']['acl'] ?: [];
     }
@@ -38,7 +37,7 @@ class AclManager extends Manager
     {
 
 
-        $provider = new EloquentPermissionProvider($config);
+        $provider = new EloquentPermissionProvider($this->config);
         $cache = $this->cache();
 
         return new AclGuard($provider, $this->app['auth.driver'],$cache,$this->config);
